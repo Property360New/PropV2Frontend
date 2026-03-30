@@ -1,0 +1,17 @@
+export const COLORS = {
+  mauve: "#9B5E8A",
+  lavender: "#C9A8C0",
+  pearl: "#F5F0F5",
+  white: "#FFFFFF",
+  darkIndigo: "#1A0F2E",
+  gold: "#C8922A",
+  goldLight: "#F5E6C8",
+  goldDark: "#A67820",
+  mauveLight: "#B87DA8",
+  mauveDark: "#7A4A6C",
+  lavenderLight: "#E8D8E4",
+  danger: "#C0392B",
+  success: "#27AE60",
+  successLight: "#D4EFDF",
+  dangerLight: "#F5D7D3",
+} as const;
