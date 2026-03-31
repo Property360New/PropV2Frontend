@@ -47,6 +47,11 @@ const SUB_TYPE_MAP: Record<InventoryType, { value: InventorySubType; label: stri
   ],
 };
 
+const COMMERCIAL_UNIT_OPTIONS = [
+  "Office Space", "Studio App", "Society Shop", "Retail Shop",
+  "Industrial Land", "Commercial Land",
+];
+
 const ALL_SUB_TYPES = [...SUB_TYPE_MAP.RESIDENTIAL, ...SUB_TYPE_MAP.COMMERCIAL];
 
 const BHK_OPTS: { value: BHKType; label: string }[] = [
@@ -407,7 +412,7 @@ function InventoryFormModal({ mode, item, projects, onClose }: {
 
   // When type changes, auto-select the first valid subtype
   const handleTypeChange = (type: InventoryType) =>
-    setForm(f => ({ ...f, inventoryType: type, inventorySubType: SUB_TYPE_MAP[type][0].value }));
+  setForm(f => ({ ...f, inventoryType: type, inventorySubType: SUB_TYPE_MAP[type][0].value, bhk: "" }));
 
   const subtypesForForm = SUB_TYPE_MAP[form.inventoryType];
 
@@ -483,7 +488,32 @@ function InventoryFormModal({ mode, item, projects, onClose }: {
 
           {/* BHK + Size + Floor */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
-            <div><label style={labelStyle}>BHK</label><select value={form.bhk} onChange={e => set("bhk", e.target.value as BHKType | "")} style={fieldStyle}><option value="">Select</option>{BHK_OPTS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}</select></div>
+            <div>
+  <label style={labelStyle}>
+    {form.inventoryType === "COMMERCIAL" ? "Info" : "BHK"}
+  </label>
+  {form.inventoryType === "COMMERCIAL" ? (
+    <select
+      value={form.bhk}
+      onChange={e => set("bhk", e.target.value as BHKType | "")}
+      style={fieldStyle}
+    >
+      <option value="">Select</option>
+      {COMMERCIAL_UNIT_OPTIONS.map(opt => (
+        <option key={opt} value={opt}>{opt}</option>
+      ))}
+    </select>
+  ) : (
+    <select
+      value={form.bhk}
+      onChange={e => set("bhk", e.target.value as BHKType | "")}
+      style={fieldStyle}
+    >
+      <option value="">Select</option>
+      {BHK_OPTS.map(b => <option key={b.value} value={b.value}>{b.label}</option>)}
+    </select>
+  )}
+</div>
             <div><label style={labelStyle}>Size (sqft)</label><input type="number" value={form.size} onChange={e => set("size", e.target.value)} style={fieldStyle} /></div>
             <div><label style={labelStyle}>Floor</label><input value={form.floor} onChange={e => set("floor", e.target.value)} style={fieldStyle} /></div>
           </div>
