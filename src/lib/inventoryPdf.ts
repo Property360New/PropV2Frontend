@@ -242,7 +242,6 @@ pdf.text(
   y = secTitle("TYPE", y);
   y = section([
     ["Furnishing", furnishLabel(item.furnishingType)],
-    ["Tenant",     item.hasTenant ? "Yes" : "No"],
     ["Parking",    item.hasParking ? "Yes" : "No"],
     ["Status",     item.isActive ? "Active" : "Inactive"],
   ], y);
