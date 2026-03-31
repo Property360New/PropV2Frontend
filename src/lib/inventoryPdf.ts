@@ -225,12 +225,6 @@ pdf.text(
     return (pdf as any).lastAutoTable.finalY + 5;
   };
 
-// ── OWNER DETAILS ─────────────────────────────────────────────────────────────
-y = secTitle("OWNER DETAILS", y);
-y = section([
-  ["Name", val(item.ownerName)],
-], y);
-
   // ── PROPERTY DETAILS ──────────────────────────────────────────────────────
   y = secTitle("PROPERTY DETAILS", y);
   y = section([
@@ -245,7 +239,7 @@ y = section([
   ], y);
 
   // ── CONDITION ─────────────────────────────────────────────────────────────
-  y = secTitle("CONDITION", y);
+  y = secTitle("TYPE", y);
   y = section([
     ["Furnishing", furnishLabel(item.furnishingType)],
     ["Tenant",     item.hasTenant ? "Yes" : "No"],

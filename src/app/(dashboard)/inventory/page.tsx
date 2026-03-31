@@ -295,9 +295,9 @@ export default function InventoryPage() {
                     <td style={{ padding: "12px 14px", fontWeight: 600, color: COLORS.darkIndigo }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}><FiUser size={12} color={COLORS.mauve} /> {item.ownerName}</div>
                     </td>
-                    <td style={{ padding: "12px 14px" }}>
+                    {/* <td style={{ padding: "12px 14px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 4, color: COLORS.darkIndigo }}><FiPhone size={12} color={COLORS.mauve} />{item.ownerPhone}</div>
-                    </td>
+                    </td> */}
                     <td style={{ padding: "12px 14px" }}>
                       <span style={{ padding: "2px 8px", borderRadius: 12, fontSize: 11, fontWeight: 700, color: item.inventoryType === "RESIDENTIAL" ? "#8E44AD" : "#E67E22", background: item.inventoryType === "RESIDENTIAL" ? "#8E44AD12" : "#E67E2212" }}>
                         {subTypeLabel(item.inventorySubType) || item.inventoryType}
