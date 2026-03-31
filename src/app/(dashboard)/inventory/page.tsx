@@ -47,9 +47,13 @@ const SUB_TYPE_MAP: Record<InventoryType, { value: InventorySubType; label: stri
   ],
 };
 
-const COMMERCIAL_UNIT_OPTIONS = [
-  "Office Space", "Studio App", "Society Shop", "Retail Shop",
-  "Industrial Land", "Commercial Land",
+const COMMERCIAL_UNIT_OPTIONS: { value: BHKType; label: string }[] = [
+  { value: "OFFICE_SPACE",    label: "Office Space" },
+  { value: "STUDIO_APP",      label: "Studio App" },
+  { value: "SOCIETY_SHOP",    label: "Society Shop" },
+  { value: "RETAIL_SHOP",     label: "Retail Shop" },
+  { value: "INDUSTRIAL_LAND", label: "Industrial Land" },
+  { value: "COMMERCIAL_LAND", label: "Commercial Land" },
 ];
 
 const ALL_SUB_TYPES = [...SUB_TYPE_MAP.RESIDENTIAL, ...SUB_TYPE_MAP.COMMERCIAL];
@@ -506,8 +510,8 @@ function InventoryFormModal({ mode, item, projects, onClose }: {
     >
       <option value="">Select</option>
       {COMMERCIAL_UNIT_OPTIONS.map(opt => (
-        <option key={opt} value={opt}>{opt}</option>
-      ))}
+      <option key={opt.value} value={opt.value}>{opt.label}</option>
+    ))}
     </select>
   ) : (
     <select
