@@ -156,32 +156,32 @@ pdf.rect(0, footerY, pw, footerH, "F");
 pdf.setFillColor(...gold);
 pdf.rect(0, ph - 2, pw, 2, "F");
 
-// logo — full page width, tall
-const logoBase64 = await loadImageAsBase64("/property360jpg.jpg");
-if (logoBase64) {
-  const logoW = pw;          // full page width (210 mm)
-  const logoH = 18;          // taller than before
-  pdf.addImage(logoBase64, "PNG", 0, footerY + 1, logoW, logoH);
-} else {
-  pdf.setFontSize(14).setFont("helvetica", "bold").setTextColor(...white);
-  pdf.text("PROPERTY 360", pw / 2, footerY + 12, { align: "center" });
-}
-
-// company address line below logo
-pdf.setFontSize(7).setFont("helvetica", "normal").setTextColor(210, 185, 225);
-pdf.text(
-  "Property 360 Degree Pvt Ltd : Office no: 543, Tower 3, Golden I Techzone 4 Greater Noida West 201306 , M: 9873280984",
-  pw / 2,
-  footerY + 22,
-  { align: "center" },
-);
-
-// quote — centered, larger
-pdf.setFontSize(9.5).setFont("helvetica", "italic").setTextColor(210, 185, 225);
+// quote — top of footer, bold and large
+pdf.setFontSize(12).setFont("helvetica", "bolditalic").setTextColor(...gold);
 pdf.text(
   `"Don't wait to buy real estate, buy real estate and wait."`,
   pw / 2,
-  footerY + 30,
+  footerY + 8,
+  { align: "center" },
+);
+
+// logo — full page width below quote
+const logoBase64 = await loadImageAsBase64("/property360jpg.jpg");
+if (logoBase64) {
+  const logoW = pw;
+  const logoH = 14;
+  pdf.addImage(logoBase64, "PNG", 0, footerY + 12, logoW, logoH);
+} else {
+  pdf.setFontSize(14).setFont("helvetica", "bold").setTextColor(...white);
+  pdf.text("PROPERTY 360", pw / 2, footerY + 19, { align: "center" });
+}
+
+// address — below logo, larger
+pdf.setFontSize(9).setFont("helvetica", "normal").setTextColor(210, 185, 225);
+pdf.text(
+  "Property 360 Degree Pvt Ltd : Office no: 543, Tower 3, Golden I Techzone 4 Greater Noida West 201306 , M: 9873280984",
+  pw / 2,
+  footerY + 31,
   { align: "center" },
 );
 
