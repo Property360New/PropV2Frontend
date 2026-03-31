@@ -531,7 +531,7 @@ function ProjectCard({
           <div style={{ marginBottom: 16 }}>
             <SectionLabel title="Basic Price" icon="💰" />
             <PriceRow label="BSP/sqft" value={fmt(proj.basicSellPrice)} />
-            {proj.discount && <PriceRow label="Discount" value={fmt(proj.discount)} />}
+            {/* {proj.discount && <PriceRow label="Discount" value={fmt(proj.discount)} />} */}
             <PriceRow label="Size"     value={size ? `${size} sqft` : "—"} />
             <PriceRow label="Amount"   value={`₹ ${base.toLocaleString("en-IN")}`} bold />
           </div>
@@ -717,7 +717,7 @@ const FIELDS: { key: keyof Project; label: string; type?: string; span?: boolean
   { key: "floors",                  label: "Floors",              type: "number" },
   { key: "paymentPlan",             label: "Payment Plan" },
   { key: "basicSellPrice",          label: "Basic Sell Price",    type: "number" },
-  { key: "discount",                label: "Discount (per sqft)", type: "number" },
+  // { key: "discount",                label: "Discount (per sqft)", type: "number" },
   { key: "viewPlc",                 label: "View PLC",            type: "number" },
   { key: "cornerPlc",               label: "Corner PLC",          type: "number" },
   { key: "floorPlc",                label: "Floor PLC",           type: "number" },
