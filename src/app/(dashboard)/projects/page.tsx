@@ -123,10 +123,10 @@ async function downloadProjectPDF(p: Project) {
   // Project name (left of header)
   pdf.setFontSize(15).setFont("helvetica", "bold").setTextColor(...white);
   pdf.text(p.name, m, 10);
-  if (p.clientName) {
-    pdf.setFontSize(8.5).setFont("helvetica", "normal").setTextColor(220, 200, 235);
-    pdf.text(`Client: ${p.clientName}`, m, 16.5);
-  }
+  // if (p.clientName) {
+  //   pdf.setFontSize(8.5).setFont("helvetica", "normal").setTextColor(220, 200, 235);
+  //   pdf.text(`Client: ${p.clientName}`, m, 16.5);
+  // }
 
   // Date (right of header)
   pdf.setFontSize(7.5).setFont("helvetica", "normal").setTextColor(210, 190, 225);
@@ -418,9 +418,9 @@ function ProjectCard({
             }}>
               {proj.name}
             </div>
-            {proj.clientName && (
+            {/* {proj.clientName && (
               <div style={{ fontSize: 12, color: COLORS.mauve, marginTop: 2 }}>{proj.clientName}</div>
-            )}
+            )} */}
           </div>
 
           {/* Action buttons */}
@@ -711,7 +711,7 @@ export default function ProjectsPage() {
 
 const FIELDS: { key: keyof Project; label: string; type?: string; span?: boolean }[] = [
   { key: "name",                    label: "Project Name *",      span: true },
-  { key: "clientName",              label: "Client Name" },
+  // { key: "clientName",              label: "Client Name" },
   { key: "product",                 label: "Product" },
   { key: "sizeInSqft",              label: "Size (sqft)",         type: "number" },
   { key: "floors",                  label: "Floors",              type: "number" },
