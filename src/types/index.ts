@@ -100,47 +100,47 @@ export interface LeadQuery {
 
   // Dates
   followUpDate: string | null;
-  visitDate:    string | null;
-  meetingDate:  string | null;
+  visitDate: string | null;
+  meetingDate: string | null;
   dealDoneDate: string | null;
   expVisitDate: string | null;   // expected visit date
   shiftingDate: string | null;   // rent leads only
 
   // Lead interest details captured at query time
-  leadType:       LeadType | null;
-  bhk:            string | null;
-  floor:          string | null;
-  location:       string | null;  // commercial: area/sector
-  purpose:        string | null;  // commercial: "Rental Income" | "Appreciation" | "Self Use"
+  leadType: LeadType | null;
+  bhk: string | null;
+  floor: string | null;
+  location: string | null;  // commercial: area/sector
+  purpose: string | null;  // commercial: "Rental Income" | "Appreciation" | "Self Use"
   furnishingType: FurnishingType | null;
-  size:           number | null;  // sqft — residential only
+  size: number | null;  // sqft — residential only
 
   // Budget
   projectId: string | null;
-  project?:  { id: string; name: string } | null;
-  budgetMin:  number | null;
-  budgetMax:  number | null;
+  project?: { id: string; name: string } | null;
+  budgetMin: number | null;
+  budgetMax: number | null;
   budgetUnit: string | null;
 
   // Visit / Meeting participants
-  visitDoneById?:   string | null;
-  visitDoneBy?:     { id: string; firstName: string; lastName: string } | null;
+  visitDoneById?: string | null;
+  visitDoneBy?: { id: string; firstName: string; lastName: string } | null;
   meetingDoneById?: string | null;
-  meetingDoneBy?:   { id: string; firstName: string; lastName: string } | null;
+  meetingDoneBy?: { id: string; firstName: string; lastName: string } | null;
 
   // Deal done specifics
   closingAmount: number | null;
-  unitNo:        string | null;
+  unitNo: string | null;
 
   // Not interested reason
   reason: string | null;
 
   // Admin-only financials
   leadActualSlab: number | null;
-  discount:       number | null;
-  actualRevenue:  number | null;
-  incentiveSlab:  number | null;
-  sellRevenue:    number | null;
+  discount: number | null;
+  actualRevenue: number | null;
+  incentiveSlab: number | null;
+  sellRevenue: number | null;
 
   createdAt: string;
   updatedAt?: string;
@@ -294,6 +294,10 @@ export interface ManagedEmployee {
   birthday: string | null;
   marriageAnniversary: string | null;
   user?: { email: string; isActive: boolean };
+  aadhaarNumber?: string | null;
+  panNumber?: string | null;
+  emergencyContact?: string | null;
+  employeeType?: 'EMPLOYEE' | 'PNL' | 'CHANNEL_PARTNER';
 }
 
 export interface CreateEmployeeBody {
@@ -308,6 +312,11 @@ export interface CreateEmployeeBody {
   marriageAnniversary?: string;
   dailyCallTarget?: number;
   monthlySalesTarget?: number;
+  aadhaarNumber?: string;
+  panNumber?: string;
+  emergencyContact?: string;
+  employeeType?: 'EMPLOYEE' | 'PNL' | 'CHANNEL_PARTNER';
+
 }
 
 // ─── Expense Types ──────────────────────────────────────────

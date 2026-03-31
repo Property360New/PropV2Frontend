@@ -486,7 +486,7 @@ function ManagerSelector({
   );
 }
 
-// ─── Create Employee Modal ────────────────────────────────────────────────────
+// ─── CreateEmployeeModal ──────────────────────────────────────────────────────
 
 function CreateEmployeeModal({
   onClose, employees,
@@ -498,35 +498,60 @@ function CreateEmployeeModal({
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState("");
   const [form, setForm] = useState<CreateEmployeeBody>({
-    firstName: "", email: "", password: "", designation: "SALES_EXECUTIVE",
+    firstName: "",
+    email: "",
+    password: "",
+    designation: "SALES_EXECUTIVE",
+    // new fields
+    aadhaarNumber: "",
+    panNumber: "",
+    emergencyContact: "",
+    employeeType: "EMPLOYEE",
   });
   const [error, setError] = useState("");
 
   const set = <K extends keyof CreateEmployeeBody>(key: K, val: CreateEmployeeBody[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
 
-  // Client-side manager validation
   const managerError = validateReportingManager(
     form.designation, form.reportingManagerId, employees,
   );
 
-  const passwordMismatch =
-  confirmPassword.length > 0 &&
-  form.password !== confirmPassword;
+  const passwordMismatch = confirmPassword.length > 0 && form.password !== confirmPassword;
+
+  // ── Client-side KYC validation ───────────────────────────────────────────────
+  const aadhaarError =
+    form.aadhaarNumber && !/^\d{12}$/.test(form.aadhaarNumber)
+      ? "Aadhaar must be exactly 12 digits"
+      : null;
+
+  const panError =
+    form.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.panNumber)
+      ? "Invalid PAN format (e.g. ABCDE1234F)"
+      : null;
+
+  const emergencyError =
+    form.emergencyContact && !/^\d{10}$/.test(form.emergencyContact)
+      ? "Emergency contact must be 10 digits"
+      : null;
+
+  const hasKycError = !!(aadhaarError || panError || emergencyError);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (managerError) { setError(managerError); return; }
+    if (hasKycError) { setError("Please fix the highlighted KYC field errors."); return; }
+    if (form.password !== confirmPassword) { setError("Passwords do not match"); return; }
     setError("");
     try {
       const { birthday, marriageAnniversary, ...rest } = form;
       const payload: Record<string, unknown> = { ...rest };
       if (birthday) payload.birthday = `${birthday}T00:00:00.000Z`;
       if (marriageAnniversary) payload.marriageAnniversary = `${marriageAnniversary}T00:00:00.000Z`;
-      if (form.password !== confirmPassword) {
-        setError("Passwords do not match");
-        return;
-      }
+      // Strip empty KYC strings so backend treats them as absent
+      if (!payload.aadhaarNumber) delete payload.aadhaarNumber;
+      if (!payload.panNumber) delete payload.panNumber;
+      if (!payload.emergencyContact) delete payload.emergencyContact;
       await createEmployee(payload as unknown as CreateEmployeeBody).unwrap();
       onClose();
     } catch (err: unknown) {
@@ -534,11 +559,15 @@ function CreateEmployeeModal({
     }
   };
 
+  const isSubmitDisabled = isLoading || !!managerError || passwordMismatch || hasKycError;
+
   return (
     <ModalShell title="Add New Employee" subtitle="Create a login and set reporting structure" onClose={onClose}>
       {error && <ValidationBanner message={error} />}
 
       <form onSubmit={handleSubmit}>
+
+        {/* ── Name ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}>First Name <span style={{ color: COLORS.danger }}>*</span></label>
@@ -550,107 +579,84 @@ function CreateEmployeeModal({
           </div>
         </div>
 
+        {/* ── Email + Password ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}>Email <span style={{ color: COLORS.danger }}>*</span></label>
             <InputWithIcon icon={FiMail} type="email" value={form.email} onChange={(v) => set("email", v)} required />
           </div>
           <div>
-            <label style={fieldLabel}>
-              Password <span style={{ color: COLORS.danger }}>*</span>
-            </label>
-
+            <label style={fieldLabel}>Password <span style={{ color: COLORS.danger }}>*</span></label>
             <div style={{
-              display: "flex",
-              alignItems: "center",
-              border: `1.5px solid ${COLORS.lavender}60`,
-              borderRadius: 10,
-              padding: "0 12px",
+              display: "flex", alignItems: "center",
+              border: `1.5px solid ${COLORS.lavender}60`, borderRadius: 10, padding: "0 12px",
             }}>
               <FiLock size={15} color={COLORS.mauve} />
-
               <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={form.password}
                 onChange={(e) => set("password", e.target.value)}
                 style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  padding: "10px",
-                  fontSize: 13,
-                  background: "transparent",
-                  color: COLORS.darkIndigo,
+                  flex: 1, border: "none", outline: "none", padding: "10px",
+                  fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
                   fontFamily: "'DM Sans', sans-serif",
                 }}
               />
-
-              <button
-                type="button"
-                onClick={() => setShowPassword((p) => !p)}
-                style={{ background: "none", border: "none", cursor: "pointer" }}
-              >
+              <button type="button" onClick={() => setShowPassword((p) => !p)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: COLORS.mauve }}>
                 {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          <div>
-            <label style={fieldLabel}>
-              Confirm Password <span style={{ color: COLORS.danger }}>*</span>
-            </label>
-
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              border: `1.5px solid ${COLORS.lavender}60`,
-              borderRadius: 10,
-              padding: "0 12px",
-            }}>
-              <FiLock size={15} color={COLORS.mauve} />
-
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                required
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{
-                  flex: 1,
-                  border: "none",
-                  outline: "none",
-                  padding: "10px",
-                  fontSize: 13,
-                  background: "transparent",
-                  color: COLORS.darkIndigo,
-                  fontFamily: "'DM Sans', sans-serif",
-                }}
-              />
-
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword((p) => !p)}
-                style={{ background: "none", border: "none", cursor: "pointer" }}
-              >
-                {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
               </button>
             </div>
           </div>
         </div>
 
+        {/* ── Confirm Password ── */}
+        <div style={{ marginBottom: 14 }}>
+          <label style={fieldLabel}>Confirm Password <span style={{ color: COLORS.danger }}>*</span></label>
+          <div style={{
+            display: "flex", alignItems: "center",
+            border: `1.5px solid ${passwordMismatch ? COLORS.danger : COLORS.lavender}60`,
+            borderRadius: 10, padding: "0 12px",
+          }}>
+            <FiLock size={15} color={COLORS.mauve} />
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={{
+                flex: 1, border: "none", outline: "none", padding: "10px",
+                fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            />
+            <button type="button" onClick={() => setShowConfirmPassword((p) => !p)}
+              style={{ background: "none", border: "none", cursor: "pointer", color: COLORS.mauve }}>
+              {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+            </button>
+          </div>
+          {passwordMismatch && (
+            <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>
+              Passwords do not match
+            </p>
+          )}
+        </div>
+
+        {/* ── Phone ── */}
         <div style={{ marginBottom: 14 }}>
           <label style={fieldLabel}>Phone</label>
           <InputWithIcon icon={FiPhone} value={form.phone || ""} onChange={(v) => set("phone", v)} placeholder="10-digit mobile number" />
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 4 }}>
+        {/* ── Designation + Manager ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}>Designation <span style={{ color: COLORS.danger }}>*</span></label>
             <select
               value={form.designation}
               onChange={(e) => {
                 set("designation", e.target.value as Designation);
-                // Clear manager if no longer valid
                 set("reportingManagerId", undefined);
               }}
               required
@@ -660,7 +666,6 @@ function CreateEmployeeModal({
             </select>
           </div>
           <div>
-            {/* Manager selector with built-in validation */}
             <ManagerSelector
               value={form.reportingManagerId || ""}
               onChange={(v) => set("reportingManagerId", v || undefined)}
@@ -671,6 +676,7 @@ function CreateEmployeeModal({
           </div>
         </div>
 
+        {/* ── Targets ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}><FiTarget size={11} style={{ marginRight: 3 }} />Daily Call Target</label>
@@ -686,7 +692,8 @@ function CreateEmployeeModal({
           </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+        {/* ── Birthday + Anniversary ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}><FiCalendar size={11} style={{ marginRight: 3 }} />Birthday</label>
             <input type="date" value={form.birthday || ""}
@@ -699,15 +706,125 @@ function CreateEmployeeModal({
           </div>
         </div>
 
-        <button type="submit" disabled={isLoading || !!managerError || passwordMismatch} style={{
+        {/* ── KYC & Employment Details ─────────────────────────────────────────── */}
+        <div style={{
+          background: `${COLORS.lavender}08`, borderRadius: 12,
+          padding: "16px 18px", marginBottom: 22,
+          border: `1px solid ${COLORS.lavender}30`,
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 800, color: COLORS.mauve,
+            textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 14,
+          }}>
+            KYC &amp; Employment Details
+          </div>
+
+          {/* Employee Type */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={fieldLabel}>Employee Type</label>
+            <select
+              value={form.employeeType ?? "EMPLOYEE"}
+              onChange={(e) => set("employeeType", e.target.value as any)}
+              style={selectStyle}
+            >
+              <option value="EMPLOYEE">Employee</option>
+              <option value="PNL">P&amp;L</option>
+              <option value="CHANNEL_PARTNER">Channel Partner</option>
+            </select>
+          </div>
+
+          {/* Aadhaar + PAN */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={fieldLabel}>Aadhaar Number</label>
+              <div style={{
+                display: "flex", alignItems: "center",
+                border: `1.5px solid ${aadhaarError ? COLORS.danger : COLORS.lavender}60`,
+                borderRadius: 10, padding: "0 12px",
+                background: aadhaarError ? "#FEF0EF" : "transparent",
+              }}>
+                <FiUser size={15} color={COLORS.mauve} />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={12}
+                  value={form.aadhaarNumber || ""}
+                  placeholder="12-digit Aadhaar"
+                  onChange={(e) => set("aadhaarNumber", e.target.value.replace(/\D/g, "").slice(0, 12) as any)}
+                  style={{
+                    flex: 1, border: "none", outline: "none", padding: "10px",
+                    fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                />
+              </div>
+              {aadhaarError && <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>{aadhaarError}</p>}
+            </div>
+
+            <div>
+              <label style={fieldLabel}>PAN Number</label>
+              <div style={{
+                display: "flex", alignItems: "center",
+                border: `1.5px solid ${panError ? COLORS.danger : COLORS.lavender}60`,
+                borderRadius: 10, padding: "0 12px",
+                background: panError ? "#FEF0EF" : "transparent",
+              }}>
+                <FiUser size={15} color={COLORS.mauve} />
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={form.panNumber || ""}
+                  placeholder="e.g. ABCDE1234F"
+                  onChange={(e) => set("panNumber", e.target.value.toUpperCase().slice(0, 10) as any)}
+                  style={{
+                    flex: 1, border: "none", outline: "none", padding: "10px",
+                    fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                    fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.5px",
+                  }}
+                />
+              </div>
+              {panError && <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>{panError}</p>}
+            </div>
+          </div>
+
+          {/* Emergency Contact */}
+          <div>
+            <label style={fieldLabel}><FiPhone size={11} style={{ marginRight: 3 }} />Emergency Contact Number</label>
+            <div style={{
+              display: "flex", alignItems: "center",
+              border: `1.5px solid ${emergencyError ? COLORS.danger : COLORS.lavender}60`,
+              borderRadius: 10, padding: "0 12px",
+              background: emergencyError ? "#FEF0EF" : "transparent",
+            }}>
+              <FiPhone size={15} color={COLORS.mauve} />
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={10}
+                value={form.emergencyContact || ""}
+                placeholder="10-digit number"
+                onChange={(e) => set("emergencyContact", e.target.value.replace(/\D/g, "").slice(0, 10) as any)}
+                style={{
+                  flex: 1, border: "none", outline: "none", padding: "10px",
+                  fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              />
+            </div>
+            {emergencyError && <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>{emergencyError}</p>}
+          </div>
+        </div>
+
+        <button type="submit" disabled={isSubmitDisabled} style={{
           width: "100%", padding: 13, borderRadius: 10, border: "none",
-          background: (isLoading || !!managerError)
+          background: isSubmitDisabled
             ? COLORS.lavender
             : `linear-gradient(135deg, ${COLORS.gold}, ${COLORS.goldDark})`,
-          color: "#fff", fontSize: 14, fontWeight: 700,
-          cursor: (isLoading || !!managerError) ? "not-allowed" : "pointer",
+          color: isSubmitDisabled ? COLORS.mauve : "#fff",
+          fontSize: 14, fontWeight: 700,
+          cursor: isSubmitDisabled ? "not-allowed" : "pointer",
           fontFamily: "'DM Sans', sans-serif",
-          boxShadow: (isLoading || !!managerError) ? "none" : `0 4px 12px ${COLORS.gold}40`,
+          boxShadow: isSubmitDisabled ? "none" : `0 4px 12px ${COLORS.gold}40`,
         }}>
           {isLoading ? "Creating..." : "Create Employee"}
         </button>
@@ -716,7 +833,7 @@ function CreateEmployeeModal({
   );
 }
 
-// ─── Edit Employee Modal ──────────────────────────────────────────────────────
+// ─── Edit Employee Modal Loader ───────────────────────────────────────────────
 
 function EditEmployeeModalLoader({
   employeeId, allEmployees, onClose,
@@ -752,11 +869,13 @@ function EditEmployeeModalLoader({
   );
 }
 
+// ─── EditEmployeeModal ────────────────────────────────────────────────────────
+
 function EditEmployeeModal({
   employee, employees, onClose,
 }: {
   employee: ScopeEmployee;
-  employees: ScopeEmployee[];   // already excludes the employee being edited
+  employees: ScopeEmployee[];
   onClose: () => void;
 }) {
   const [updateEmployee, { isLoading }] = useUpdateEmployeeMutation();
@@ -777,58 +896,78 @@ function EditEmployeeModal({
     marriageAnniversary: (employee as any).marriageAnniversary
       ? new Date((employee as any).marriageAnniversary).toISOString().slice(0, 10)
       : "",
+    // KYC fields
+    aadhaarNumber: (employee as any).aadhaarNumber || "",
+    panNumber: (employee as any).panNumber || "",
+    emergencyContact: (employee as any).emergencyContact || "",
+    employeeType: ((employee as any).employeeType || "EMPLOYEE") as "EMPLOYEE" | "PNL" | "CHANNEL_PARTNER",
   });
 
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const set = <K extends typeof form, F extends keyof K>(key: F, val: any) =>
+  const set = <K extends keyof typeof form>(key: K, val: (typeof form)[K]) =>
     setForm((f) => ({ ...f, [key]: val }));
 
-  // ── Downgrade blocker ───────────────────────────────────────────────────────
-  // Find all employees whose reportingManagerId is this employee, AND whose
-  // designation level >= the NEW designation level the user is trying to set.
-  // These must be reassigned first before the downgrade is allowed.
-  //
-  // NOTE: `employees` prop already excludes the employee being edited, but
-  // we need all employees including those not in scope — however since the
-  // API only returns scope employees we work with what we have.
-  const designationDowngrading = form.designation !== employee.designation &&
+  // ── Downgrade blocker ─────────────────────────────────────────────────────────
+  const designationDowngrading =
+    form.designation !== employee.designation &&
     (DESIGNATION_LEVEL[form.designation] ?? 0) < (DESIGNATION_LEVEL[employee.designation as Designation] ?? 0);
 
   const directReportBlockers: ScopeEmployee[] = designationDowngrading
     ? employees.filter((e) => {
-      const isDirectReport = (e as any).reportingManagerId === employee.id;
-      if (!isDirectReport) return false;
-      const drLevel = DESIGNATION_LEVEL[e.designation as Designation] ?? 0;
-      const newLevel = DESIGNATION_LEVEL[form.designation] ?? 0;
-      return drLevel >= newLevel;
-    })
+        const isDirectReport = (e as any).reportingManagerId === employee.id;
+        if (!isDirectReport) return false;
+        const drLevel = DESIGNATION_LEVEL[e.designation as Designation] ?? 0;
+        const newLevel = DESIGNATION_LEVEL[form.designation] ?? 0;
+        return drLevel >= newLevel;
+      })
     : [];
 
   const hasDowngradeBlocker = directReportBlockers.length > 0;
 
-  // ── Manager selector validation ─────────────────────────────────────────────
+  // ── Manager validation ────────────────────────────────────────────────────────
   const managerError = validateReportingManager(
     form.designation,
     form.reportingManagerId || undefined,
     employees,
     employee.id,
   );
-  
 
   const managerChanged = (form.reportingManagerId || "") !== (currentManagerId || "");
 
-  const isBlocked = !!managerError || hasDowngradeBlocker;
+  // ── KYC validation ────────────────────────────────────────────────────────────
+  const aadhaarError =
+    form.aadhaarNumber && !/^\d{12}$/.test(form.aadhaarNumber)
+      ? "Aadhaar must be exactly 12 digits"
+      : null;
 
+  const panError =
+    form.panNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(form.panNumber)
+      ? "Invalid PAN format (e.g. ABCDE1234F)"
+      : null;
+
+  const emergencyError =
+    form.emergencyContact && !/^\d{10}$/.test(form.emergencyContact)
+      ? "Emergency contact must be 10 digits"
+      : null;
+
+  const hasKycError = !!(aadhaarError || panError || emergencyError);
+
+  const isBlocked = !!managerError || hasDowngradeBlocker || hasKycError;
+
+  // ── Submit ────────────────────────────────────────────────────────────────────
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (hasDowngradeBlocker) { setError("Reassign the blocked direct reports first."); return; }
     if (managerError) { setError(managerError); return; }
+    if (hasKycError) { setError("Please fix the highlighted KYC field errors."); return; }
     setError("");
     setSuccess("");
 
     const body: Record<string, unknown> = {};
+
+    // Basic fields
     if (form.firstName !== employee.firstName) body.firstName = form.firstName;
     if (form.lastName !== (employee.lastName || "")) body.lastName = form.lastName;
     if (form.phone !== ((employee as any).phone || "")) body.phone = form.phone || null;
@@ -846,6 +985,16 @@ function EditEmployeeModal({
       ? new Date((employee as any).marriageAnniversary).toISOString().slice(0, 10) : "";
     if (form.marriageAnniversary !== origAnni)
       body.marriageAnniversary = form.marriageAnniversary ? `${form.marriageAnniversary}T00:00:00.000Z` : null;
+
+    // KYC fields
+    if (form.aadhaarNumber !== ((employee as any).aadhaarNumber || ""))
+      body.aadhaarNumber = form.aadhaarNumber || null;
+    if (form.panNumber !== ((employee as any).panNumber || ""))
+      body.panNumber = form.panNumber || null;
+    if (form.emergencyContact !== ((employee as any).emergencyContact || ""))
+      body.emergencyContact = form.emergencyContact || null;
+    if (form.employeeType !== ((employee as any).employeeType || "EMPLOYEE"))
+      body.employeeType = form.employeeType;
 
     if (Object.keys(body).length === 0) {
       setSuccess("No changes to save.");
@@ -870,16 +1019,14 @@ function EditEmployeeModal({
       {error && <ValidationBanner message={error} type="error" />}
       {success && <ValidationBanner message={success} type="success" />}
 
-      {/* ── DOWNGRADE BLOCKER BANNER ── */}
+      {/* ── Downgrade blocker banner ── */}
       {hasDowngradeBlocker && (
         <div style={{
           borderRadius: 12, marginBottom: 16, overflow: "hidden",
           border: "1.5px solid #E74C3C40",
         }}>
-          {/* Red header */}
           <div style={{
-            padding: "10px 14px",
-            background: "#FEF0EF",
+            padding: "10px 14px", background: "#FEF0EF",
             borderBottom: "1px solid #E74C3C20",
             display: "flex", alignItems: "center", gap: 8,
             color: "#C0392B", fontSize: 13, fontWeight: 700,
@@ -887,17 +1034,12 @@ function EditEmployeeModal({
             <FiAlertTriangle size={15} />
             Cannot downgrade: direct reports must be reassigned first
           </div>
-          {/* Explanation */}
-          <div style={{
-            padding: "10px 14px", background: "#FFFBFB",
-            fontSize: 12, color: "#7B241C", lineHeight: 1.6,
-          }}>
+          <div style={{ padding: "10px 14px", background: "#FFFBFB", fontSize: 12, color: "#7B241C", lineHeight: 1.6 }}>
             <p style={{ margin: "0 0 8px" }}>
               Changing <strong>{employee.firstName}'s</strong> designation from{" "}
               <strong>{employee.designation.replace(/_/g, " ")}</strong> to{" "}
-              <strong>{form.designation.replace(/_/g, " ")}</strong> would make the
-              following direct reports equal to or more senior — which is not allowed.
-              Please open each person below and assign them a different reporting manager first:
+              <strong>{form.designation.replace(/_/g, " ")}</strong> would make the following
+              direct reports equal to or more senior. Please reassign them first:
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {directReportBlockers.map((b) => (
@@ -918,17 +1060,13 @@ function EditEmployeeModal({
                     <span style={{ fontWeight: 700, color: COLORS.darkIndigo }}>
                       {b.firstName} {b.lastName}
                     </span>
-                    <span style={{
-                      marginLeft: 6, fontSize: 11,
-                      color: getColor(b.designation), fontWeight: 600,
-                    }}>
+                    <span style={{ marginLeft: 6, fontSize: 11, color: getColor(b.designation), fontWeight: 600 }}>
                       {b.designation.replace(/_/g, " ")}
                     </span>
                   </div>
                   <span style={{
                     marginLeft: "auto", fontSize: 10, color: "#C0392B",
-                    background: "#FDECEA", padding: "2px 8px", borderRadius: 10,
-                    fontWeight: 700,
+                    background: "#FDECEA", padding: "2px 8px", borderRadius: 10, fontWeight: 700,
                   }}>
                     Needs reassignment
                   </span>
@@ -939,7 +1077,7 @@ function EditEmployeeModal({
         </div>
       )}
 
-      {/* Manager change info */}
+      {/* ── Manager change notice ── */}
       {managerChanged && !managerError && !hasDowngradeBlocker && (
         <div style={{
           padding: "10px 14px", borderRadius: 10, marginBottom: 16,
@@ -956,7 +1094,8 @@ function EditEmployeeModal({
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* Name row */}
+
+        {/* ── Name ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}>First Name <span style={{ color: COLORS.danger }}>*</span></label>
@@ -968,13 +1107,13 @@ function EditEmployeeModal({
           </div>
         </div>
 
-        {/* Phone */}
+        {/* ── Phone ── */}
         <div style={{ marginBottom: 14 }}>
           <label style={fieldLabel}>Phone</label>
           <InputWithIcon icon={FiPhone} value={form.phone} onChange={(v) => set("phone", v)} placeholder="10-digit mobile number" />
         </div>
 
-        {/* Designation + Manager */}
+        {/* ── Designation + Manager ── */}
         <div style={{
           background: hasDowngradeBlocker ? "#FEF8F8" : `${COLORS.lavender}08`,
           borderRadius: 12, padding: "16px 18px", marginBottom: 14,
@@ -997,7 +1136,6 @@ function EditEmployeeModal({
                 onChange={(e) => {
                   const newDesig = e.target.value as Designation;
                   set("designation", newDesig);
-                  // Auto-clear manager if they'd no longer be valid for this designation
                   if (form.reportingManagerId) {
                     const mgr = employees.find((em) => em.id === form.reportingManagerId);
                     if (mgr) {
@@ -1017,7 +1155,6 @@ function EditEmployeeModal({
                   <option key={d.value} value={d.value}>{d.label}</option>
                 ))}
               </select>
-              {/* Show current designation as reference */}
               {designationDowngrading && (
                 <p style={{ margin: "4px 0 0", fontSize: 11, color: "#C0392B" }}>
                   ↓ Downgrade from {employee.designation.replace(/_/g, " ")}
@@ -1038,27 +1175,24 @@ function EditEmployeeModal({
           </div>
 
           {currentManagerId && (
-            <div style={{
-              marginTop: 10, fontSize: 12, color: COLORS.mauve,
-              display: "flex", alignItems: "center", gap: 6,
-            }}>
+            <div style={{ marginTop: 10, fontSize: 12, color: COLORS.mauve, display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ fontWeight: 600 }}>Current manager:</span>
               {(() => {
                 const mgr = employees.find((e) => e.id === currentManagerId);
                 return mgr
                   ? <span style={{ color: COLORS.darkIndigo, fontWeight: 600 }}>
-                    {mgr.firstName} {mgr.lastName}
-                    <span style={{ color: COLORS.mauve, fontWeight: 400, marginLeft: 4 }}>
-                      ({mgr.designation.replace(/_/g, " ")})
+                      {mgr.firstName} {mgr.lastName}
+                      <span style={{ color: COLORS.mauve, fontWeight: 400, marginLeft: 4 }}>
+                        ({mgr.designation.replace(/_/g, " ")})
+                      </span>
                     </span>
-                  </span>
                   : <span style={{ fontStyle: "italic" }}>Not in scope</span>;
               })()}
             </div>
           )}
         </div>
 
-        {/* Targets */}
+        {/* ── Targets ── */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}><FiTarget size={11} style={{ marginRight: 3 }} />Daily Call Target</label>
@@ -1074,8 +1208,8 @@ function EditEmployeeModal({
           </div>
         </div>
 
-        {/* Birthday + Anniversary */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
+        {/* ── Birthday + Anniversary ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
             <label style={fieldLabel}><FiCalendar size={11} style={{ marginRight: 3 }} />Birthday</label>
             <input type="date" value={form.birthday}
@@ -1085,6 +1219,115 @@ function EditEmployeeModal({
             <label style={fieldLabel}><FiCalendar size={11} style={{ marginRight: 3 }} />Marriage Anniversary</label>
             <input type="date" value={form.marriageAnniversary}
               onChange={(e) => set("marriageAnniversary", e.target.value)} style={numberInputStyle} />
+          </div>
+        </div>
+
+        {/* ── KYC & Employment Details ─────────────────────────────────────────── */}
+        <div style={{
+          background: `${COLORS.lavender}08`, borderRadius: 12,
+          padding: "16px 18px", marginBottom: 22,
+          border: `1px solid ${COLORS.lavender}30`,
+        }}>
+          <div style={{
+            fontSize: 11, fontWeight: 800, color: COLORS.mauve,
+            textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 14,
+          }}>
+            KYC &amp; Employment Details
+          </div>
+
+          {/* Employee Type */}
+          <div style={{ marginBottom: 14 }}>
+            <label style={fieldLabel}>Employee Type</label>
+            <select
+              value={form.employeeType}
+              onChange={(e) => set("employeeType", e.target.value as typeof form.employeeType)}
+              style={selectStyle}
+            >
+              <option value="EMPLOYEE">Employee</option>
+              <option value="PNL">P&amp;L</option>
+              <option value="CHANNEL_PARTNER">Channel Partner</option>
+            </select>
+          </div>
+
+          {/* Aadhaar + PAN */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+            <div>
+              <label style={fieldLabel}>Aadhaar Number</label>
+              <div style={{
+                display: "flex", alignItems: "center",
+                border: `1.5px solid ${aadhaarError ? COLORS.danger : COLORS.lavender}60`,
+                borderRadius: 10, padding: "0 12px",
+                background: aadhaarError ? "#FEF0EF" : "transparent",
+              }}>
+                <FiUser size={15} color={COLORS.mauve} />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={12}
+                  value={form.aadhaarNumber}
+                  placeholder="12-digit Aadhaar"
+                  onChange={(e) => set("aadhaarNumber", e.target.value.replace(/\D/g, "").slice(0, 12))}
+                  style={{
+                    flex: 1, border: "none", outline: "none", padding: "10px",
+                    fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                    fontFamily: "'DM Sans', sans-serif",
+                  }}
+                />
+              </div>
+              {aadhaarError && <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>{aadhaarError}</p>}
+            </div>
+
+            <div>
+              <label style={fieldLabel}>PAN Number</label>
+              <div style={{
+                display: "flex", alignItems: "center",
+                border: `1.5px solid ${panError ? COLORS.danger : COLORS.lavender}60`,
+                borderRadius: 10, padding: "0 12px",
+                background: panError ? "#FEF0EF" : "transparent",
+              }}>
+                <FiUser size={15} color={COLORS.mauve} />
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={form.panNumber}
+                  placeholder="e.g. ABCDE1234F"
+                  onChange={(e) => set("panNumber", e.target.value.toUpperCase().slice(0, 10))}
+                  style={{
+                    flex: 1, border: "none", outline: "none", padding: "10px",
+                    fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                    fontFamily: "'DM Sans', sans-serif", letterSpacing: "0.5px",
+                  }}
+                />
+              </div>
+              {panError && <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>{panError}</p>}
+            </div>
+          </div>
+
+          {/* Emergency Contact */}
+          <div>
+            <label style={fieldLabel}><FiPhone size={11} style={{ marginRight: 3 }} />Emergency Contact Number</label>
+            <div style={{
+              display: "flex", alignItems: "center",
+              border: `1.5px solid ${emergencyError ? COLORS.danger : COLORS.lavender}60`,
+              borderRadius: 10, padding: "0 12px",
+              background: emergencyError ? "#FEF0EF" : "transparent",
+            }}>
+              <FiPhone size={15} color={COLORS.mauve} />
+              <input
+                type="text"
+                inputMode="numeric"
+                maxLength={10}
+                value={form.emergencyContact}
+                placeholder="10-digit number"
+                onChange={(e) => set("emergencyContact", e.target.value.replace(/\D/g, "").slice(0, 10))}
+                style={{
+                  flex: 1, border: "none", outline: "none", padding: "10px",
+                  fontSize: 13, background: "transparent", color: COLORS.darkIndigo,
+                  fontFamily: "'DM Sans', sans-serif",
+                }}
+              />
+            </div>
+            {emergencyError && <p style={{ margin: "4px 0 0", fontSize: 11, color: COLORS.danger }}>{emergencyError}</p>}
           </div>
         </div>
 
