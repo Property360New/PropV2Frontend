@@ -280,7 +280,7 @@ export default function InventoryPage() {
             <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'DM Sans', sans-serif", fontSize: 13 }}>
               <thead>
                 <tr style={{ background: `linear-gradient(135deg, ${COLORS.darkIndigo}, #2D1B4E)`, color: "#fff" }}>
-                  {["Owner", "Type", "Project", "BHK", "Unit/Tower", "Size", "Floor", "Demand", "Furnishing", "Tenant", "Parking", "Status", "Actions"].map(h => (
+                  {["Owner", "Type", "Project", "Info", "Unit/Tower", "Size", "Floor", "Demand", "Furnishing", "Tenant", "Parking", "Status", "Actions"].map(h => (
                     <th key={h} style={{ padding: "12px 14px", textAlign: "left", fontWeight: 700, fontSize: 12, whiteSpace: "nowrap" }}>{h}</th>
                   ))}
                 </tr>
