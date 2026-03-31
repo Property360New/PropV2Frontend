@@ -41,10 +41,10 @@ function WishModal({
     : ["#DDA0DD", "#FFB6C1", "#E6E6FA", "#C8A2C8", "#D8BFD8", "#EE82EE"];
 
   const [msg, setMsg] = useState(
-    isBirthday
-      ? `🎂 Happy Birthday ${name}!\n\nWishing you a day as wonderful as you are. May this year bring you joy, success, and all the happiness you deserve! 🎉✨`
-      : `💍 Happy Anniversary ${name}!\n\nCongratulations on this beautiful milestone. Wishing you many more years of love, laughter, and togetherness! 🥂❤️`
-  );
+  isBirthday
+    ? `Dear *${name}* ji,\nA very Happy Birthday to you! 🎉\n\nOn behalf of Property 360 Degree Pvt. Ltd., we extend our warmest wishes for your continued success, excellent health, and a life filled with exclusive achievements.\n\nYour trust and association mean a lot to us. We truly appreciate the opportunity to serve you and look forward to strengthening this relationship further.\n\nHave a wonderful year ahead!\n\nWarm Regards,\nTeam Property 360 Degree Pvt. Ltd.\n📞 9873280984`
+    : `Dear *${name}* ji,\nWarmest Wishes on your Wedding Anniversary! 💐\n\nOn behalf of Property 360 Degree Pvt. Ltd., we extend our heartfelt congratulations to you and your better half on this beautiful occasion. May your journey together continue to be filled with happiness, success, and cherished moments.\n\nWe truly value our association with you and wish you both a lifetime of togetherness and prosperity.\n\nWarm Regards,\nTeam Property 360 Degree Pvt. Ltd.\n📞 9873280984`
+);
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
