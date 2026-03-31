@@ -375,7 +375,13 @@ export type BHKType =
   | "FOUR_BHK"
   | "FOUR_BHK_STUDY"
   | "FOUR_BHK_SERVANT"
-  | "FOUR_BHK_STORE";
+  | "FOUR_BHK_STORE"
+  | "OFFICE_SPACE"
+  | "STUDIO_APP"
+  | "SOCIETY_SHOP"
+  | "RETAIL_SHOP"
+  | "INDUSTRIAL_LAND"
+  | "COMMERCIAL_LAND"
 
 export interface InventoryItem {
   id: string;

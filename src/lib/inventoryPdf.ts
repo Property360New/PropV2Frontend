@@ -15,6 +15,12 @@ const BHK_LABELS: Record<string, string> = {
   FOUR_BHK_STUDY: "4 BHK+Study",
   FOUR_BHK_SERVANT: "4 BHK+Servant",
   FOUR_BHK_STORE: "4 BHK+Store",
+  OFFICE_SPACE: "Office Space",
+  STUDIO_APP: "Studio App",
+  SOCIETY_SHOP: "Society Shop",
+  RETAIL_SHOP: "Retail Shop",
+  INDUSTRIAL_LAND: "Industrial Land",
+  COMMERCIAL_LAND: "Commercial Land"
 };
 
 const FURNISH_LABELS: Record<string, string> = {

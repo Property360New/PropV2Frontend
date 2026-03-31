@@ -65,6 +65,12 @@ const BHK_OPTS: { value: BHKType; label: string }[] = [
   { value: "FOUR_BHK_STUDY", label: "4 BHK+Study" },
   { value: "FOUR_BHK_SERVANT", label: "4 BHK+Servant" },
   { value: "FOUR_BHK_STORE", label: "4 BHK+Store" },
+  { value: "OFFICE_SPACE", label: "Office Space" },
+  { value: "STUDIO_APP", label: "Studio App" },
+  { value: "SOCIETY_SHOP", label: "Society Shop" },
+  { value: "RETAIL_SHOP", label: "Retail Shop" },
+  { value: "INDUSTRIAL_LAND", label: "Industrial Land" },
+  { value: "COMMERCIAL_LAND", label: "Commercial Land" },
 ];
 
 const FURNISH_OPTS: { value: FurnishingType; label: string }[] = [
